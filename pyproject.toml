@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jsm-tui"
+version = "0.1.0"
+description = "Simple Textual TUI to manage Jira Service Management alerts"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "jsm-tui contributors" }
+]
+dependencies = [
+  "httpx>=0.27.0",
+  "textual>=0.58.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.11.0",
+  "pytest>=8.3.0",
+  "ruff>=0.6.0",
+]
+
+[project.scripts]
+jsm-tui = "jsm_tui.main:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jsm_tui"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+packages = ["jsm_tui"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"
