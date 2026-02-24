@@ -83,7 +83,7 @@ class DescriptionScreen(ModalScreen[None]):
         with Container(id="description-modal"):
             with Container(id="detail-header"):
                 yield Static(
-                    f"Alert {self._details.alert_id}: {self._details.title}",
+                    Text(f"Alert {self._details.alert_id}: {self._details.title}"),
                     id="detail-title",
                 )
                 yield Static(
@@ -120,6 +120,49 @@ class AlertsApp(App[None]):
     CSS = """
     Screen {
         layout: vertical;
+        background: #1c1c1c;
+    }
+
+    Header {
+        background: #00005f;
+        color: #2d2d6b;
+    }
+
+    HeaderClock {
+        background: #377a7a;
+        color: #005f5f;
+    }
+
+    Footer {
+        background: #00005f;
+        color: #dadada;
+    }
+
+    Footer .footer--key {
+        color: #ffaf00;
+        text-style: bold;
+    }
+
+    Footer .footer--description {
+        color: #dadada;
+    }
+
+    DataTable > .datatable--header {
+        background: #00005f;
+        color: #dadada;
+    }
+
+    DataTable > .datatable--odd-row {
+        background: #101010;
+    }
+
+    DataTable > .datatable--even-row {
+        background: #1c1c1c;
+    }
+
+    DataTable > .datatable--cursor {
+        background: #005f5f;
+        color: #dadada;
     }
 
     #table-container {
@@ -170,7 +213,7 @@ class AlertsApp(App[None]):
         height: 1;
         text-align: left;
         padding-left: 2;
-        color: $text-muted;
+        color: #9e9e9e;
     }
     """
 
@@ -205,7 +248,7 @@ class AlertsApp(App[None]):
 
     def on_mount(self) -> None:
         table = self._table
-        table.add_columns("Prio", "Status", "Age", "Acked By", "Message")
+        table.add_columns("Prio", "Status", "Age", "Acked By", "Tags", "Message")
         table.zebra_stripes = True
         self.action_refresh()
         self.set_interval(self._refresh_interval_seconds, self.action_refresh)
@@ -248,7 +291,8 @@ class AlertsApp(App[None]):
                 _status_cell(alert.status),
                 alert.age,
                 alert.acknowledged_by,
-                alert.message,
+                alert.tags_display,
+                Text(alert.message),
                 key=alert.id,
             )
         self.query_one("#open-alerts-count", Static).update(f"Open alerts: {len(self._row_ids)}")

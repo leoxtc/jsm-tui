@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from pprint import pformat
 from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
@@ -54,8 +55,22 @@ class JsmApiClient:
         payload = self._request_json("GET", "/v1/alerts", params={"size": self._page_size})
 
         raw_alerts = _extract_alerts(payload)
-        alerts = [Alert.from_api(item) for item in raw_alerts]
-        alerts = [alert for alert in alerts if alert.id and alert.is_open]
+        alerts: list[Alert] = []
+        for item in raw_alerts:
+            alert = Alert.from_api(item)
+            logger.info(
+                "Alert details id=%s priority=%s status=%s age=%s acked_by=%s tags=%s message=%s",
+                alert.id,
+                alert.priority,
+                alert.status,
+                alert.age,
+                alert.acknowledged_by,
+                alert.tags_display,
+                _truncate_text(alert.message, max_len=250),
+            )
+            logger.info("Alert raw payload: %s", _truncate_text(pformat(item), max_len=4000))
+            if alert.id and alert.is_open:
+                alerts.append(alert)
 
         return sorted(alerts, key=_sort_key, reverse=True)
 

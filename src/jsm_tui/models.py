@@ -14,6 +14,7 @@ class Alert:
     description: str
     created_at: datetime | None
     acknowledged_by: str
+    tags: tuple[str, ...] = ()
 
     @classmethod
     def from_api(cls, payload: dict[str, Any]) -> Alert:
@@ -44,6 +45,7 @@ class Alert:
             description=description,
             created_at=created_at,
             acknowledged_by=acknowledged_by,
+            tags=_extract_tags(payload),
         )
 
     @property
@@ -66,6 +68,12 @@ class Alert:
     @property
     def is_open(self) -> bool:
         return self.status not in {"closed", "resolved"}
+
+    @property
+    def tags_display(self) -> str:
+        if not self.tags:
+            return "-"
+        return ", ".join(self.tags)
 
 
 def _first_non_empty(*values: object) -> str:
@@ -100,6 +108,35 @@ def _person_name(value: object) -> str:
             if name and name != "-" and name not in names:
                 names.append(name)
         return ", ".join(names)
+
+    return ""
+
+
+def _extract_tags(payload: dict[str, Any]) -> tuple[str, ...]:
+    tags: list[str] = []
+    for key in ("tags", "alertTags", "labels"):
+        raw = payload.get(key)
+        if isinstance(raw, list):
+            for item in raw:
+                tag = _tag_name(item)
+                if tag and tag not in tags:
+                    tags.append(tag)
+            if tags:
+                break
+    return tuple(tags)
+
+
+def _tag_name(value: object) -> str:
+    if isinstance(value, str):
+        return value.strip()
+
+    if isinstance(value, dict):
+        for key in ("name", "label", "value", "key"):
+            candidate = value.get(key)
+            if isinstance(candidate, str):
+                normalized = candidate.strip()
+                if normalized:
+                    return normalized
 
     return ""
 

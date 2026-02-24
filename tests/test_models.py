@@ -23,6 +23,8 @@ def test_alert_from_api_parses_core_fields() -> None:
     assert alert.message == "Database unreachable"
     assert alert.description == "DB connection timeout for prod"
     assert alert.acknowledged_by == "oncall"
+    assert alert.tags == ()
+    assert alert.tags_display == "-"
     assert alert.created_at is not None
 
 
@@ -89,3 +91,37 @@ def test_alert_from_api_parses_acknowledged_by_list() -> None:
     alert = Alert.from_api(payload)
 
     assert alert.acknowledged_by == "Jane Oncall, sre"
+
+
+def test_alert_from_api_parses_tags_from_list_of_strings() -> None:
+    payload = {
+        "id": "abc123",
+        "status": "open",
+        "message": "Database unreachable",
+        "tags": ["payments", "prod"],
+    }
+
+    alert = Alert.from_api(payload)
+
+    assert alert.tags == ("payments", "prod")
+    assert alert.tags_display == "payments, prod"
+
+
+def test_alert_from_api_parses_tags_from_dicts_and_deduplicates() -> None:
+    payload = {
+        "id": "abc123",
+        "status": "open",
+        "message": "Database unreachable",
+        "alertTags": [
+            {"name": "payments"},
+            {"label": "p1"},
+            {"value": "payments"},
+            {"key": "backend"},
+            {"ignored": "x"},
+        ],
+    }
+
+    alert = Alert.from_api(payload)
+
+    assert alert.tags == ("payments", "p1", "backend")
+
