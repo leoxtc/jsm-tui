@@ -1,4 +1,4 @@
-from jsm_tui.app import _extract_runbook_url, _linkify_urls, _status_cell
+from jsm_tui.app import _extract_runbook_url, _linkify_urls, _status_cell, _truncate_cell
 
 
 def test_status_cell_uses_green_for_acked() -> None:
@@ -30,3 +30,11 @@ def test_extract_runbook_url_prefers_markdown_runbook_link() -> None:
 def test_extract_runbook_url_from_plain_runbook_label() -> None:
     text = "Runbook: https://example.com/runbook."
     assert _extract_runbook_url(text) == "https://example.com/runbook"
+
+
+def test_truncate_cell_keeps_short_values() -> None:
+    assert _truncate_cell("prod", max_len=10) == "prod"
+
+
+def test_truncate_cell_limits_to_max_len() -> None:
+    assert _truncate_cell("payments,prod", max_len=10) == "payment..."

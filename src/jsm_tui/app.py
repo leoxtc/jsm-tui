@@ -291,7 +291,7 @@ class AlertsApp(App[None]):
                 _status_cell(alert.status),
                 alert.age,
                 alert.acknowledged_by,
-                alert.tags_display,
+                _truncate_cell(alert.tags_display, max_len=10),
                 Text(alert.message),
                 key=alert.id,
             )
@@ -484,3 +484,11 @@ def _extract_runbook_url(text: str) -> str | None:
 
 def _clean_url(url: str) -> str:
     return url.rstrip(".,;:")
+
+
+def _truncate_cell(value: str, *, max_len: int) -> str:
+    if len(value) <= max_len:
+        return value
+    if max_len <= 3:
+        return "." * max_len
+    return f"{value[: max_len - 3]}..."
